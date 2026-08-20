@@ -37,6 +37,9 @@ function storeHints() {
 
 const SALT = process.env.AZULEJO_SALT || "azulejo-default-salt";
 const ADMIN_TOKEN = process.env.AZULEJO_ADMIN_TOKEN || "";
+/* PATCH: admin via accountlogin */
+const ADMIN_EMAIL = String(process.env.AZULEJO_ADMIN_EMAIL || "jurreb@live.nl").trim().toLowerCase();
+const ADMIN_PASS  = process.env.AZULEJO_ADMIN_PASS || "";
 const USERS_KEY = "azulejo:users";
 
 const sha = s => crypto.createHash("sha256").update(s).digest("hex");
@@ -111,11 +114,23 @@ export default async function handler(req, res) {
   try {
     /* ---------------- admin ---------------- */
     if (action === "admin") {
-      if (!ADMIN_TOKEN) {
-        return res.status(503).json({ error: "admin_disabled", hint: "Set AZULEJO_ADMIN_TOKEN in Vercel and redeploy." });
-      }
-      if (!safeEqual(body.token || "", ADMIN_TOKEN)) {
-        return res.status(403).json({ error: "bad_token" });
+      /* Staat AZULEJO_ADMIN_PASS ingesteld, dan is de accountlogin de enige weg
+         naar binnen en telt het losse token niet meer mee. */
+      if (ADMIN_PASS) {
+        const okEmail = cleanEmail(body.email) === ADMIN_EMAIL;
+        const okPass  = safeEqual(body.pass || "", ADMIN_PASS);
+        if (!okEmail || !okPass) {
+          return res.status(403).json({ error: "not_admin" });
+        }
+      } else if (ADMIN_TOKEN) {
+        if (!safeEqual(body.token || "", ADMIN_TOKEN)) {
+          return res.status(403).json({ error: "bad_token" });
+        }
+      } else {
+        return res.status(503).json({
+          error: "admin_disabled",
+          hint: "Set AZULEJO_ADMIN_PASS (or AZULEJO_ADMIN_TOKEN) in Vercel and redeploy."
+        });
       }
 
       const op = String(body.op || "list");

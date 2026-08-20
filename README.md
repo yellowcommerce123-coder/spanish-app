@@ -21,7 +21,11 @@ Staan in Vercel onder Settings → Environment Variables, niet in deze repo:
 
 - Redis/KV-koppeling — `KV_REST_API_URL` + `KV_REST_API_TOKEN` (of de Upstash-varianten)
 - `AZULEJO_SALT` — salt voor het hashen van gebruikers
-- `AZULEJO_ADMIN_TOKEN` — beheerderswachtwoord; zonder deze weigert de admin-API
+- `AZULEJO_ADMIN_TOKEN` — oud beheerderswachtwoord; alleen nog gebruikt als terugval
+- `AZULEJO_ADMIN_PASS` — **het wachtwoord van het beheerdersaccount**. Staat deze
+  ingesteld, dan komt alleen `AZULEJO_ADMIN_EMAIL` met dit wachtwoord bij de
+  beheerpagina, en telt het losse token niet meer mee
+- `AZULEJO_ADMIN_EMAIL` — beheerdersaccount (standaard `jurreb@live.nl`)
 
 ## Deployen
 
@@ -37,5 +41,18 @@ Dat pakt de nieuwste zip uit `~/Downloads` (ook als de app in een zip ín die zi
 zit), controleert de inhoud, scant op per ongeluk meegekomen sleutels of tokens
 (deze repo is publiek), vervangt de bestanden, commit en pusht. Vercel doet de rest.
 
-`README.md`, `.gitignore` en `LICENSE` blijven bij een update staan — die horen
-bij de repo, niet bij de zip.
+`README.md`, `.gitignore`, `LICENSE` en `patches/` blijven bij een update staan —
+die horen bij de repo, niet bij de zip.
+
+## Eigen aanpassingen: `patches/`
+
+De zip overschrijft `index.html` en `api/progress.js` volledig. Alles wat wij zelf
+aan die bestanden veranderen staat daarom als script in `patches/`, en het
+deploy-script past die na elke update opnieuw toe.
+
+- `01-admin-login.py` — schermt de beheerpagina af op de inlog van het
+  beheerdersaccount in plaats van op een los token
+
+Een patch is idempotent en stopt met een harde fout als de code van vorm is
+veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
+geen update dan een update zonder afscherming.

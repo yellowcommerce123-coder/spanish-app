@@ -7714,6 +7714,7 @@ function apiUitleg(err){
   if(m==="no_store") return "De database is nog niet gekoppeld. Doe dat in Vercel en deploy opnieuw.";
   if(m==="admin_disabled") return "AZULEJO_ADMIN_TOKEN staat nog niet ingesteld in Vercel.";
   if(m==="bad_token") return "Dat beheerderswachtwoord klopt niet.";
+  if(m==="not_admin") return "Dit account heeft geen beheerrechten, of het wachtwoord klopt niet.";
   if(m==="no_email") return "Vul een e-mailadres in.";
   if(m.indexOf("Failed to fetch")>=0 || m.indexOf("NetworkError")>=0)
     return "Geen verbinding. Draait de app op je eigen server?";
@@ -7847,12 +7848,18 @@ function renderAdmin(){
     $("#sc-admin").innerHTML = h; return;
   }
 
-  h += '<div class="card pad stack-14"><div><div class="h-md">Beheerderswachtwoord</div>'
-    + '<p class="prose" style="font-size:15px">Dit is niet je gewone wachtwoord. Het is de waarde die je in Vercel hebt gezet als '
-    + '<span class="mono">AZULEJO_ADMIN_TOKEN</span>. Zonder dat wachtwoord weigert de server elke beheeractie, ook al zie je deze pagina.</p></div>'
-    + '<input class="inp" id="adm-token" type="password" placeholder="Beheerderswachtwoord" value="'+(ADM.token||"")+'">'
+  h += '<div class="card pad stack-14"><div><div class="h-md">Ingelogd als beheerder</div>'
+    + '<p class="prose" style="font-size:15px">Je bent binnen op je eigen account '
+    + '(<span class="mono">'+(AUTH.email||"")+'</span>). De server controleert bij elke beheeractie '
+    + 'je e-mailadres en je wachtwoord. Wie een ander wachtwoord gebruikt, krijgt niets te zien.</p></div>'
+    + (ADM.needToken
+        ? '<div class="note note-granada"><p class="prose" style="font-size:15px">De server accepteert je accountlogin nog niet. '
+          + 'Zet in Vercel de variabele <span class="mono">AZULEJO_ADMIN_PASS</span> op het wachtwoord van dit account '
+          + 'en deploy opnieuw. Tot die tijd kun je hieronder het oude beheerderswachtwoord gebruiken.</p></div>'
+          + '<input class="inp" id="adm-token" type="password" placeholder="Beheerderswachtwoord (AZULEJO_ADMIN_TOKEN)" value="'+(ADM.token||"")+'">'
+        : '')
     + '<div class="row"><button class="btn btn-primary btn-sm" data-adm="list">Accounts ophalen</button>'
-    + '<button class="btn btn-ghost btn-sm" data-adm="forget">Wachtwoord vergeten op dit apparaat</button></div>'
+    + '<button class="btn btn-ghost btn-sm" data-adm="forget">Beheerderswachtwoord vergeten op dit apparaat</button></div>'
     + '<div class="tiny dim" id="adm-msg">'+(ADM.msg||"")+'</div></div>';
 
   if(ADM.users){
@@ -7903,13 +7910,21 @@ function renderAdmin(){
 async function admCall(op, extra){
   const f = $("#adm-token");
   if(f && f.value) { ADM.token = f.value.trim(); try{ localStorage.setItem(TKEY, ADM.token); }catch(e){} }
-  if(!ADM.token){ ADM.msg = "Vul eerst het beheerderswachtwoord in."; return renderAdmin(); }
+  /* PATCH: admin via accountlogin */
+  if(!isAdmin()){ ADM.msg = "Deze pagina hoort bij een ander account."; return renderAdmin(); }
   ADM.msg = "Bezig..."; renderAdmin();
   try{
-    const j = await api(Object.assign({action:"admin", token:ADM.token, op:op}, extra||{}));
+    const j = await api(Object.assign({action:"admin", op:op,
+      email:AUTH.email||"", pass:AUTH.pass||"", token:ADM.token||""}, extra||{}));
+    ADM.needToken = false;
     if(op==="list"){ ADM.users = j.users || []; ADM.msg = ADM.users.length+" account(s) opgehaald."; }
     if(op==="delete"){ ADM.msg = "Account verwijderd."; return admCall("list"); }
-  }catch(err){ ADM.msg = apiUitleg(err); }
+  }catch(err){
+    const code = String(err && err.message || err);
+    if(code==="bad_token" || code==="admin_disabled") ADM.needToken = true;
+    if(code==="not_admin") ADM.needToken = false;
+    ADM.msg = apiUitleg(err);
+  }
   renderAdmin();
 }
 
