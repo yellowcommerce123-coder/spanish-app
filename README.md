@@ -52,6 +52,8 @@ deploy-script past die na elke update opnieuw toe.
 
 - `01-admin-login.py` — schermt de beheerpagina af op de inlog van het
   beheerdersaccount in plaats van op een los token
+- `02-waarschuwing-zonder-account.py` — laat "Verder zonder account" eerst
+  waarschuwen dat de voortgang alleen in die browser blijft
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever

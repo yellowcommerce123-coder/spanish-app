@@ -7747,8 +7747,24 @@ function renderGate(){
     + '<div class="tiny dim">'+T("Bestaat het account nog niet? Dan wordt het meteen aangemaakt.")+'</div>'
     + '<div class="tiny" id="g-msg" style="color:var(--granada)">'+(AUTH.msg||"")+'</div>'
     + '</div>'
-    + '<div class="center"><button class="btn btn-ghost btn-sm" data-skiplogin="1">'+T("Verder zonder account")+'</button>'
-    + '<div class="tiny dim" style="margin-top:8px">'+T("Dan blijft je voortgang alleen in deze browser.")+'</div></div>'
+    + '<div class="center">' /* PATCH: waarschuwing zonder account */
+    + (AUTH.warn
+        ? '<div class="note note-granada" style="text-align:left"><p class="prose" style="font-size:15px">'
+          + L("Zonder account bewaart de app je voortgang <b>alleen in deze browser, op dit apparaat</b>. "
+            + "Wis je je browsergegevens, gebruik je een prive-venster of pak je een andere telefoon of laptop, "
+            + "dan is alles weg en begin je opnieuw bij nul. Er is dan geen manier om het terug te halen.",
+              "Without an account the app keeps your progress <b>only in this browser, on this device</b>. "
+            + "Clear your browsing data, use a private window or switch to another phone or laptop, "
+            + "and everything is gone and you start over from zero. There is no way to get it back.")
+          + '</p></div>'
+          + '<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap">'
+          + '<button class="btn btn-primary btn-sm" data-showlogin="1">'
+          + L("Toch een account maken","Create an account after all")+'</button>'
+          + '<button class="btn btn-ghost btn-sm" data-skiplogin="ja">'
+          + L("Ik begrijp het, ga verder","I understand, continue")+'</button></div>'
+        : '<button class="btn btn-ghost btn-sm" data-skiplogin="1">'+T("Verder zonder account")+'</button>'
+          + '<div class="tiny dim" style="margin-top:8px">'+T("Dan blijft je voortgang alleen in deze browser.")+'</div>')
+    + '</div>'
     + '</div>';
   document.body.appendChild(el);
   setTimeout(()=>{ const i = $("#g-email"); if(i) i.focus(); }, 80);
@@ -8673,8 +8689,13 @@ document.addEventListener("click", ev => {
       msg("Uitgelogd. Je voortgang blijft op dit apparaat staan en komt terug als je weer inlogt."); return; }
   }
   if(d.login){ doLogin(); return; }
-  if(d.skiplogin){ try{ localStorage.setItem("azulejo:skiplogin","1"); }catch(e){} const g=$("#gate"); if(g) g.remove(); return; }
-  if(d.showlogin){ try{ localStorage.removeItem("azulejo:skiplogin"); }catch(e){} renderGate(); return; }
+  if(d.skiplogin){ /* PATCH: waarschuwing zonder account */
+    if(d.skiplogin !== "ja"){ AUTH.warn = true; renderGate(); return; }
+    try{ localStorage.setItem("azulejo:skiplogin","1"); }catch(e){}
+    AUTH.warn = false;
+    const g=$("#gate"); if(g) g.remove(); return;
+  }
+  if(d.showlogin){ AUTH.warn = false; try{ localStorage.removeItem("azulejo:skiplogin"); }catch(e){} renderGate(); return; }
   if(d.unlock){ unlockTopic(d.unlock); return; }
   if(d.unlockall !== undefined){ unlockAll(); return; }
   if(d.closemodal !== undefined){ closeModal(); return; }
