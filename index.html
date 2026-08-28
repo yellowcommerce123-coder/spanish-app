@@ -2658,7 +2658,11 @@ reg("plural","vorm",()=>{
 });
 reg("plural","keuze",()=>{
   const w = R.pick(NOUNS);
-  const bad = w.es.endsWith("z") ? w.es+"es" : (/[aeiou]$/.test(w.es) ? w.es+"es" : w.es+"s");
+  /* PATCH: meervoud-afleider mag niet het antwoord zijn */
+  const klinker = /[aeiouáéíóú]$/.test(w.es);
+  let bad = w.es.endsWith("z") ? w.es+"es" : (klinker ? w.es+"es" : w.es+"s");
+  if(bad === w.pl) bad = klinker ? w.es+"s" : w.es+"es";
+  if(bad === w.pl) bad = w.es;
   return {type:"mc", prompt:L("Welk meervoud is goed?","Which plural is correct?"),
     sentence:w.art+" "+w.es+" ("+betekenis(w)+")", showEs:artPlur(w)+" "+w.pl,
     options:[w.pl, bad], answer:w.pl, word:w.key,
