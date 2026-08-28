@@ -54,6 +54,8 @@ deploy-script past die na elke update opnieuw toe.
   beheerdersaccount in plaats van op een los token
 - `02-waarschuwing-zonder-account.py` — laat "Verder zonder account" eerst
   waarschuwen dat de voortgang alleen in die browser blijft
+- `03-hay-zin-bouwen.py` — maakt van de typ-oefening op de tegel "Hay en está"
+  een bouwoefening, want intypen was te zwaar voor beginners
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever

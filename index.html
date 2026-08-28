@@ -2749,8 +2749,14 @@ reg("hay","nl2es",()=>{
   const nl = nieuw
     ? L("Er is een "+w.nl+" in de "+place.nl+".", "There is a "+betekenis(w)+" in the "+betekenis(place)+".")
     : L("De "+w.nl+" is in de "+place.nl+".", "The "+betekenis(w)+" is in the "+betekenis(place)+".");
-  return {type:"input", prompt:L("Vertaal naar het Spaans.","Translate into Spanish."),
-    sentence:nl, showEs:es, answer:es, accept:[es, es.replace(".","")], word:w.key,
+  /* PATCH: hay als bouwoefening */
+  const woorden = es.replace(".","").split(" ");
+  const andere  = nieuw ? "está" : "hay";
+  return {type:"build",
+    prompt:L("Bouw de Spaanse zin. Tik de woorden aan in de goede volgorde.",
+             "Build the Spanish sentence. Tap the words in the right order."),
+    sentence:nl, showEs:es, pool:R.shuffle(woorden.concat([andere])),
+    answer:woorden.join(" "), accept:[woorden.join(" "), es], word:w.key,
     why:nieuw
       ? L("Je zegt er is een, dus het ding is nieuw. Nieuw plus onbepaald betekent hay plus un of una.",
           "You say there is a, so the thing is new. New plus indefinite means hay plus un or una.")
