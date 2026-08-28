@@ -4764,6 +4764,7 @@ const UI = {
   "Zet in de juiste orde":"Put in the right order", "Luisteren":"Listen",
   "Wat zie je?":"What do you see?", "Woorden koppelen":"Match the words", "Oefening":"Exercise",
   "Waarom jouw antwoord niet kan":"Why your answer does not work",
+  /* PATCH: laatste Engelse restjes */ "beschrijvend woord":"describing word",
   "Lessen":"Lessons", "Oefenen":"Practise", "Woorden":"Words", "Spelen":"Play", "Voortgang":"Progress",
   "Spaans leren, tegel voor tegel":"Learn Spanish, tile by tile",
   "Jouw tegelmuur":"Your tile wall", "geglazuurd":"glazed", "Niveau":"Level",
@@ -8065,7 +8066,7 @@ function drillItems(key){
     return byTheme(k).map(w=>({
       q:betekenis(w), a:(w.art?w.art+" ":"")+w.es, accept:[(w.art?w.art+" ":"")+w.es, w.es],
       emoji:w.emoji, pron:w.pron || pronOf(w.es),
-      note:w.art ? "meervoud: "+w.pl : "beschrijvend woord"
+      note:w.art ? T("meervoud")+": "+w.pl : T("beschrijvend woord")
     }));
   }
   if(kind==="ger"){ return []; }
@@ -8515,7 +8516,7 @@ function newFlash(){
     + '<div class="tiny dim" style="margin-top:14px">Tik om om te draaien</div></div></div>'
     + '<div class="flash-face flash-back"><div>'+(w.emoji?'<div style="font-size:40px">'+w.emoji+'</div>':'')
     + '<div class="vnl" style="font-size:24px">'+w.nl+'</div>'
-    + '<div class="tiny dim" style="margin-top:10px">meervoud: '+w.pl+'</div></div></div>'
+    + '<div class="tiny dim" style="margin-top:10px">'+T("meervoud")+': '+w.pl+'</div></div></div>'
     + '</div></div>';
 }
 function newMem(){
@@ -8539,7 +8540,7 @@ function renderStats(){
   const timeTxt = hrs ? hrs+" u "+(mins%60)+" m" : mins+" min";
   const weak = weakTopics().slice(0,5);
 
-  let h = '<div class="stack-20"><div><div class="eyebrow">Voortgang</div><h1 class="h-xl">Niveau '+levelOf(S.xp)+'</h1></div>';
+  let h = '<div class="stack-20"><div><div class="eyebrow">'+T("Voortgang")+'</div><h1 class="h-xl">'+T("Niveau")+' '+levelOf(S.xp)+'</h1></div>';
   h += '<div class="sgrid">'
     + stat(S.xp, "XP") + stat(acc+"%","Goed beantwoord") + stat(S.streak,"Nu op rij") + stat(S.best,"Beste rij ooit")
     + stat(words,"Woorden geleerd") + stat(rules,"Regels geleerd") + stat(mastered,"Onderwerpen meester") + stat(timeTxt,"Tijd geoefend")
