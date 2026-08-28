@@ -2425,8 +2425,8 @@ function ex(o){
       o.type = "build";
     }
   }
-  if(!o.kind) o.kind = ({mc:"Meerkeuze",input:"Vul in",build:"Zin bouwen",order:"Zet in de juiste orde",
-    listen:"Luisteren",picture:"Wat zie je?",match:"Woorden koppelen"})[o.type] || "Oefening";
+  if(!o.kind) o.kind = T(({mc:"Meerkeuze",input:"Vul in",build:"Zin bouwen",order:"Zet in de juiste orde",
+    listen:"Luisteren",picture:"Wat zie je?",match:"Woorden koppelen"})[o.type] || "Oefening");
   if(o.type==="input" && !o.accept) o.accept=[o.answer];
   if(o.options){
     const gezien = {}; const uniek = [];
@@ -3008,7 +3008,14 @@ reg("adjectives","onveranderlijk",()=>{
   const a = R.pick(ADJS.filter(x=>["azul","verde","gris","marrón","grande","fácil","difícil","joven","fuerte","caliente"].includes(x.es)));
   const w = R.pick(NOUNS), plural = R.chance(.5);
   const right = adjForm(a,w.g,plural?2:1);
-  const bad = plural ? a.es+"s" : (w.g==="f" ? a.es.replace(/.$/,"a") : a.es+"o");
+  /* PATCH: afleider mag niet gelijk zijn aan het antwoord */
+  let bad = plural ? a.es+"s" : (w.g==="f" ? a.es.replace(/.$/,"a") : a.es+"o");
+  let badWhy = L("Die vorm bestaat niet.","That form does not exist. Only -o adjectives have four forms.");
+  if(bad === right){
+    bad = a.es;
+    badWhy = L("Dat is de enkelvoudsvorm. Het onderwerp is meervoud, dus er hoort een -s achter: "+right+".",
+               "That is the singular form. The subject is plural, so it needs an -s: "+right+".");
+  }
   return {type:"mc", prompt:L("Welke vorm is goed?","Which form is correct?"),
     sentence:cap(plural?artPlur(w):w.art)+" "+(plural?w.pl:w.es)+" "+(plural?"son":"es")+" ___ .",
     showEs:cap(plural?artPlur(w):w.art)+" "+(plural?w.pl:w.es)+" "+(plural?"son":"es")+" "+right+".",
@@ -3016,7 +3023,7 @@ reg("adjectives","onveranderlijk",()=>{
     why:L(a.es+" eindigt niet op een -o, dus het heeft geen aparte mannelijke en vrouwelijke vorm.",
       a.es+" does not end in -o, so it has no separate masculine and feminine form. It only changes for the plural.")
       + (plural?L(" In het meervoud wordt het "+right+"."," In the plural it becomes "+right+"."):""),
-    wrongWhy:{[bad]:L("Die vorm bestaat niet.","That form does not exist. Only -o adjectives have four forms.")},
+    wrongWhy:{[bad]:badWhy},
     ruleName:L("Woorden die niet op -o eindigen hebben geen aparte vrouwelijke vorm","Adjectives not ending in -o have no separate feminine form"),
     mistake:L("Overal een -a of -o achter zetten.","Adding -a or -o to everything."),
     trick:L("Eindigt het op -o? Vier vormen. Anders? Twee.","Ends in -o? Four forms. Otherwise? Two.")};
@@ -4748,6 +4755,11 @@ const EN_TOPIC = {
 
 /* Alle vaste teksten in de app. Links Nederlands, rechts Engels. */
 const UI = {
+  /* PATCH: Engels afmaken */
+  "Meerkeuze":"Multiple choice", "Vul in":"Fill in", "Zin bouwen":"Build the sentence",
+  "Zet in de juiste orde":"Put in the right order", "Luisteren":"Listen",
+  "Wat zie je?":"What do you see?", "Woorden koppelen":"Match the words", "Oefening":"Exercise",
+  "Waarom jouw antwoord niet kan":"Why your answer does not work",
   "Lessen":"Lessons", "Oefenen":"Practise", "Woorden":"Words", "Spelen":"Play", "Voortgang":"Progress",
   "Spaans leren, tegel voor tegel":"Learn Spanish, tile by tile",
   "Jouw tegelmuur":"Your tile wall", "geglazuurd":"glazed", "Niveau":"Level",
@@ -7205,6 +7217,10 @@ const GTOPICS = TOPICS.slice();
 Object.keys(PHRASES).forEach(id => TOPICS.push({id, nl:PHRASES[id].nl, ico:PHRASES[id].ico, kind:"phrase"}));
 Object.keys(BUILD).forEach(id => TOPICS.push({id:"b_"+id, nl:BUILD[id].nl, ico:BUILD[id].ico, kind:"build", src:id}));
 const TOPIC = {}; TOPICS.forEach((t,i)=>{ TOPIC[t.id]=t; t.n=i; });
+/* PATCH: Engels afmaken */
+TOPICS.forEach(t => { let vast = t.nl; Object.defineProperty(t, "nl", {
+  get(){ return (LANG === "en" && typeof EN_TOPIC !== "undefined" && EN_TOPIC[t.id]) ? EN_TOPIC[t.id] : vast; },
+  set(v){ vast = v; }, configurable: true }); });
 
 /* ---------- voortgang ---------- */
 const S = {
@@ -8148,7 +8164,7 @@ function renderDrillRun(){
   if(!it){ DRILL.stage="done"; return renderDrill(); }
   const pct = Math.round(drillDone()/drillTotal()*100);
   let h = '<div class="runner stack-20">';
-  h += '<div class="run-head"><button class="icon-btn" data-drillexit="1" aria-label="Stoppen">✕</button>'
+  h += '<div class="run-head"><button class="icon-btn" data-drillexit="1" aria-label="'+T("Stoppen")+'">✕</button>'
     + '<div style="flex:1"><div class="bar"><div class="bar-fill verde" style="width:'+pct+'%"></div></div></div>'
     + '<div class="streak-pill mono">'+drillDone()+' / '+drillTotal()+'</div></div>';
   h += '<div class="row"><span class="q-kind">Uitschrijven</span><span class="tiny dim">'+DRILL.title+'</span>'
@@ -8169,7 +8185,7 @@ function renderDrillRun(){
       + '<div class="fb-body"><div class="fb-blk"><div class="fb-lab">'+T("Het juiste antwoord")+'</div>'
       + '<div class="row"><div class="fb-txt"><b>'+it.a+'</b></div>'+spk(it.a)+'</div>'
       + '<div class="vpron">'+(it.pron||"")+'</div></div>'
-      + (it.note?'<div class="fb-blk"><div class="fb-lab">Onthoud</div><div class="fb-txt">'+it.note+'</div></div>':'')
+      + (it.note?'<div class="fb-blk"><div class="fb-lab">'+T("Onthoud")+'</div><div class="fb-txt">'+it.note+'</div></div>':'')
       + (!DRILL.wasOk?'<div class="fb-blk"><div class="fb-txt tiny">De teller voor dit woord begint opnieuw. Schrijf hem nog een keer.</div></div>':'')
       + '<button class="btn '+(DRILL.wasOk?"btn-primary":"btn-saffron")+' btn-wide" data-drillnext="1">Verder</button></div></div>';
   }
@@ -8246,7 +8262,7 @@ function renderPracticeHub(){
   h += '<div><div class="eyebrow">Oefenen</div><h1 class="h-xl">Wat wil je doen?</h1></div>';
   h += '<div class="pickgrid">';
   h += '<button class="pick-card" data-mode="weak"><div class="pick-ico">🎯</div><div class="pick-t">Zwakke punten</div><div class="pick-d">'
-    + (weak.length? weak.map(t=>t.nl).join(", ") : "Oefen eerst wat, dan verschijnen ze hier") + '</div></button>';
+    + (weak.length? weak.map(t=>t.nl).join(", ") : T("Oefen eerst wat, dan verschijnen ze hier")) + '</div></button>';
   h += '<button class="pick-card" data-mode="mixed"><div class="pick-ico">🔁</div><div class="pick-t">Grote herhaling</div><div class="pick-d">50 vragen door alles heen'
     + (S.mixedBest?' · beste '+S.mixedBest+'%':'') + '</div></button>';
   h += '<button class="pick-card" data-mode="master"><div class="pick-ico">🏆</div><div class="pick-t">Meesterproef</div><div class="pick-d">100 vragen'
@@ -8290,7 +8306,7 @@ function renderQuestion(){
   const label = total ? (SESS.idx+1)+" / "+total : (TOPIC[e.topic] ? TOPIC[e.topic].nl : "Oefenen");
 
   let h = '<div class="runner stack-20">';
-  h += '<div class="run-head"><button class="icon-btn" data-stop="1" aria-label="Stoppen">✕</button>'
+  h += '<div class="run-head"><button class="icon-btn" data-stop="1" aria-label="'+T("Stoppen")+'">✕</button>'
     + '<div style="flex:1"><div class="bar"><div class="bar-fill'+(e.rem?' saffron':'')+'" style="width:'+pct+'%"></div></div></div>'
     + '<div class="streak-pill">☀ '+S.streak+'</div></div>';
   if(SESS.endAt) h += '<div class="center mono" id="clock" style="font-size:20px">90</div>';
@@ -8372,24 +8388,28 @@ function answer(given){
     + (res.ok?"✅ "+T("Goed!"):"❌ "+T("Niet goed")) + (res.accentOnly?' <span class="tiny" style="font-weight:600">— let nog even op de accenten</span>':'') + '</div><div class="fb-body">';
   if(e.type!=="match"){
     const shown = e.showEs || e.answer;
-    h += '<div class="fb-blk"><div class="fb-lab">Het juiste antwoord</div><div class="row"><div class="fb-txt"><b>'
+    h += '<div class="fb-blk"><div class="fb-lab">'+T("Het juiste antwoord")+'</div><div class="row"><div class="fb-txt"><b>'
       + shown + '</b></div>'+spk(shown)+'</div>'
       + (e.showEs ? '<div class="vpron">'+pronOf(String(shown).replace(/\(.*?\)/g,""))+'</div>' : '')
       + '</div>';
   }
   h += '<div class="fb-blk"><div class="fb-lab">'+T("Waarom dit klopt")+'</div><div class="fb-txt">'+e.why+'</div></div>';
   if(!res.ok && e.wrongWhy && e.wrongWhy[given]){
-    h += '<div class="fb-blk"><div class="fb-lab">Waarom jouw antwoord niet kan</div><div class="fb-txt">'+e.wrongWhy[given]+'</div></div>';
+    h += '<div class="fb-blk"><div class="fb-lab">'+T("Waarom jouw antwoord niet kan")+'</div><div class="fb-txt">'+e.wrongWhy[given]+'</div></div>';
   }
   h += '<div class="fb-blk"><div class="fb-lab">'+T("De regel")+'</div><div class="fb-txt">'+e.ruleName+'</div></div>';
   h += '<div class="fb-blk"><div class="fb-lab">'+T("Wat beginners fout doen")+'</div><div class="fb-txt">'+e.mistake+'</div></div>';
   h += '<div class="fb-blk" style="background:var(--saffronsoft);margin:-4px -6px;padding:12px 14px;border-radius:12px">'
     + '<div class="fb-lab">'+T("Geheugentruc")+'</div><div class="fb-txt">'+e.trick+'</div></div>';
   if(res.extra){
-    h += '<div class="fb-blk"><div class="fb-txt tiny">Je krijgt nu '+res.extra+' extra oefeningen over precies deze regel. '
-      + 'Drie keer goed op rij en we gaan verder.</div></div>';
+    h += '<div class="fb-blk"><div class="fb-txt tiny">'
+      + L("Je krijgt nu "+res.extra+" extra oefeningen over precies deze regel. Drie keer goed op rij en we gaan verder.",
+          "You now get "+res.extra+" extra exercises on this exact rule. Three in a row correct and we move on.")
+      + '</div></div>';
   } else if(e.rem && res.ok){
-    h += '<div class="fb-blk"><div class="fb-txt tiny">Goed op rij: '+res.streakOnRule+' van 3.</div></div>';
+    h += '<div class="fb-blk"><div class="fb-txt tiny">'
+      + L("Goed op rij: "+res.streakOnRule+" van 3.", "Correct in a row: "+res.streakOnRule+" of 3.")
+      + '</div></div>';
   }
   h += '<button class="btn '+(res.ok?"btn-primary":"btn-saffron")+' btn-wide" data-next="1">'+T("Volgende")+'</button>';
   h += '</div></div>';
@@ -8404,11 +8424,11 @@ function renderResult(){
   const s = SESS; if(!s) return;
   const total = s.right + s.wrong;
   const pct = total ? Math.round(s.right/total*100) : 0;
-  let title = "Klaar", sub = "";
+  let title = T("Klaar"), sub = "";
   if(s.mode==="quiz"){
     const t = S.t[s.topic];
     if(pct > t.quiz) t.quiz = pct;
-    title = pct>=80 ? "Geslaagd!" : "Nog niet";
+    title = pct>=80 ? T("Geslaagd!") : T("Nog niet");
     sub = pct>=80 ? "Je beheerst "+TOPIC[s.topic].nl+" goed genoeg. De tegel is geglazuurd." : "Je hebt 80% nodig. Lees de uitleg nog eens en probeer opnieuw.";
     if(pct>=80) addXp(50);
   }
@@ -8477,7 +8497,7 @@ function renderPlay(){
     + '<button class="btn btn-sm" data-flash="new">Nieuw woord</button></div><div id="flashbox"></div></div>';
   h += '<div class="card pad stack-14"><div class="row"><div class="h-lg">Geheugenspel</div><div class="spacer"></div>'
     + '<button class="btn btn-sm" data-mem="new">Nieuw spel</button></div>'
-    + '<p class="tiny dim">Zoek de paren: Spaans woord bij Nederlandse betekenis.</p><div id="membox"></div></div>';
+    + '<p class="tiny dim">'+T("Zoek de paren: Spaans woord bij Nederlandse betekenis.")+'</p><div id="membox"></div></div>';
   h += '</div>';
   $("#sc-play").innerHTML = h;
   newFlash(); newMem();
@@ -8524,7 +8544,7 @@ function renderStats(){
 
   if(weak.length){
     h += '<div class="card pad"><h3 class="h-lg" style="margin-bottom:4px">Wat aandacht nodig heeft</h3>'
-      + '<p class="tiny dim" style="margin-bottom:14px">Deze onderwerpen komen extra vaak terug in de herhaling.</p><div class="blist">'
+      + '<p class="tiny dim" style="margin-bottom:14px">'+T("Deze onderwerpen komen extra vaak terug in de herhaling.")+'</p><div class="blist">'
       + weak.map(t=>{
         const p = Math.round(S.t[t.id].strength);
         return '<div class="brow"><div class="brow-top"><span>'+t.ico+' '+t.nl+'</span><span class="brow-pct">'+p+'%</span></div>'
@@ -8552,7 +8572,7 @@ function renderStats(){
   }
   h += '<div class="tiny dim" id="cloudmsg">'+(CLOUD.msg||"")+'</div></div>';
 
-  h += '<div class="card pad stack-14"><h3 class="h-lg">Voortgang bewaren</h3>'
+  h += '<div class="card pad stack-14"><h3 class="h-lg">'+T("Voortgang bewaren")+'</h3>'
     + '<p class="prose" style="font-size:15px">Je voortgang wordt vanzelf bewaard in deze browser, ook als je het tabblad sluit. '
     + 'Ga je naar een ander apparaat? Maak dan eerst een reservekopie en zet die daar terug.</p>'
     + '<div class="row"><button class="btn btn-sm" data-export="1">Reservekopie opslaan</button>'
@@ -8570,7 +8590,7 @@ function renderStats(){
     + '</div></div></div>';
   $("#sc-stats").innerHTML = h;
 }
-function stat(n,l){ return '<div class="stat"><div class="stat-n">'+n+'</div><div class="stat-l">'+l+'</div></div>'; }
+function stat(n,l){ return '<div class="stat"><div class="stat-n">'+n+'</div><div class="stat-l">'+T(l)+'</div></div>'; }
 
 function toast(txt){
   const old = document.getElementById("toast"); if(old) old.remove();
