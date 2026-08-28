@@ -66,6 +66,7 @@ deploy-script past die na elke update opnieuw toe.
   vertalingen bestonden al maar liepen niet door `T()`
 - `07-meervoud-afleider.py` — in plural/keuze miste de klinkertest de accenten,
   waardoor bebé, sofá, café en té zichzelf beantwoordden
+- `08-engels-restjes.py` — de laatste labels die niet door `T()` liepen
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
