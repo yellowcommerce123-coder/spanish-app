@@ -60,6 +60,12 @@ deploy-script past die na elke update opnieuw toe.
   met een antwoord van drie woorden of meer om naar een bouwoefening. Antwoorden
   van een of twee woorden (werkwoordsvorm, lidwoord + zelfstandig naamwoord,
   getal) blijven typen: dat is een vorm invullen, geen zin schrijven
+- `05-onveranderlijk-afleider.py` — in adjectives/onveranderlijk viel de foute
+  optie samen met het antwoord bij woorden op -e (fuerte + s = fuertes)
+- `06-engels-afmaken.py` — brokken Nederlands in de Engelse versie; de meeste
+  vertalingen bestonden al maar liepen niet door `T()`
+- `07-meervoud-afleider.py` — in plural/keuze miste de klinkertest de accenten,
+  waardoor bebé, sofá, café en té zichzelf beantwoordden
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
