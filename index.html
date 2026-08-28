@@ -2416,6 +2416,15 @@ const G_NL = {m:"mannelijk", f:"vrouwelijk"};
 
 /* het bouwen van oefeningen */
 function ex(o){
+  /* PATCH: zinnen bouwen in plaats van typen */
+  if(o.type==="input" && typeof o.answer==="string" && o.answer.indexOf("+") < 0){
+    const woorden = o.answer.replace(/[.,;:\u00bf?\u00a1!]/g, " ").split(/\s+/).filter(Boolean);
+    if(woorden.length >= 3){
+      o.accept = (o.accept || [o.answer]).concat([woorden.join(" "), o.answer]);
+      o.pool = R.shuffle(woorden.slice());
+      o.type = "build";
+    }
+  }
   if(!o.kind) o.kind = ({mc:"Meerkeuze",input:"Vul in",build:"Zin bouwen",order:"Zet in de juiste orde",
     listen:"Luisteren",picture:"Wat zie je?",match:"Woorden koppelen"})[o.type] || "Oefening";
   if(o.type==="input" && !o.accept) o.accept=[o.answer];
