@@ -67,6 +67,8 @@ deploy-script past die na elke update opnieuw toe.
 - `07-meervoud-afleider.py` — in plural/keuze miste de klinkertest de accenten,
   waardoor bebé, sofá, café en té zichzelf beantwoordden
 - `08-engels-restjes.py` — de laatste labels die niet door `T()` liepen
+- `09-werkwoorden-uitbreiden.py` — twaalf regelmatige werkwoorden uit de lesstof
+  toegevoegd aan `VERBS`, `NLSTEM` en `EN_VERB` (41 -> 53)
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
