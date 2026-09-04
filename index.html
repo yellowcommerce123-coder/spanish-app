@@ -8510,11 +8510,11 @@ function renderWords(){
 }
 
 /* ---------------- SPELEN ---------------- */
-let FLASH = null, MEM = null;
+let FLASH = null, MEM = null, FDECK = null;
 function renderPlay(){
   let h = '<div class="stack-20"><div><div class="eyebrow">Spelen</div><h1 class="h-xl">Even losjes oefenen</h1></div>';
-  h += '<div class="card pad stack-14"><div class="row"><div class="h-lg">Flashkaarten</div><div class="spacer"></div>'
-    + '<button class="btn btn-sm" data-flash="new">Nieuw woord</button></div><div id="flashbox"></div></div>';
+  h += '<div class="card pad stack-14"><div class="row"><div class="h-lg">'+L("Flitskaarten","Flashcards")+'</div><div class="spacer"></div>'
+    + '<button class="btn btn-sm" data-flash="new">'+L("Nieuwe ronde","New round")+'</button></div><div id="flashbox"></div></div>';
   h += '<div class="card pad stack-14"><div class="row"><div class="h-lg">Geheugenspel</div><div class="spacer"></div>'
     + '<button class="btn btn-sm" data-mem="new">Nieuw spel</button></div>'
     + '<p class="tiny dim">'+T("Zoek de paren: Spaans woord bij Nederlandse betekenis.")+'</p><div id="membox"></div></div>';
@@ -8522,17 +8522,63 @@ function renderPlay(){
   $("#sc-play").innerHTML = h;
   newFlash(); newMem();
 }
+/* PATCH: flitskaarten met alle woorden */
+/* de hele woordenschat als stapel: zelfstandige naamwoorden, bijvoeglijke
+   naamwoorden en werkwoorden, geschud */
+function flashStapel(){
+  const uitWoorden = VOCAB.map(w => ({
+    voor: (w.art ? '<span class="art">'+w.art+'</span> ' : '') + w.es,
+    pron: w.pron || pronOf(w.es),
+    emoji: w.emoji || "",
+    achter: betekenis(w),
+    extra: w.isAdj ? L("beschrijvend woord","describing word") : T("meervoud")+": "+w.pl
+  }));
+  const uitWerkwoorden = VERBS.map(v => ({
+    voor: v.es,
+    pron: v.pron || pronOf(v.es),
+    emoji: "",
+    achter: verbBetekenis(v),
+    extra: L("werkwoord op -"+v.g, "verb ending in -"+v.g)
+  }));
+  return R.shuffle(uitWoorden.concat(uitWerkwoorden));
+}
+
 function newFlash(){
-  const w = R.pick(VOCAB);
-  FLASH = w;
-  $("#flashbox").innerHTML = '<div class="flash" id="flash"><div class="flash-in">'
-    + '<div class="flash-face"><div><div class="ves" style="font-size:30px">'+(w.art?'<span class="art">'+w.art+'</span> ':'')+w.es+'</div>'
-    + '<div class="vpron" style="margin-top:6px">'+w.pron+'</div>'
-    + '<div class="tiny dim" style="margin-top:14px">Tik om om te draaien</div></div></div>'
-    + '<div class="flash-face flash-back"><div>'+(w.emoji?'<div style="font-size:40px">'+w.emoji+'</div>':'')
-    + '<div class="vnl" style="font-size:24px">'+w.nl+'</div>'
-    + '<div class="tiny dim" style="margin-top:10px">'+T("meervoud")+': '+w.pl+'</div></div></div>'
-    + '</div></div>';
+  FDECK = {kaarten: flashStapel(), i: 0, nogeens: [], goed: 0};
+  paintFlash();
+}
+
+function paintFlash(){
+  const box = $("#flashbox"); if(!box || !FDECK) return;
+  const d = FDECK;
+
+  if(d.i >= d.kaarten.length){
+    const totaal = d.goed + d.nogeens.length;
+    box.innerHTML = '<div class="note"><p class="prose">'
+      + L("Ronde klaar. Je kende "+d.goed+" van de "+totaal+" kaarten.",
+          "Round finished. You knew "+d.goed+" out of "+totaal+" cards.")
+      + '</p></div><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">'
+      + (d.nogeens.length
+          ? '<button class="btn btn-primary btn-sm" data-flash="herhaal">'
+            + L("De "+d.nogeens.length+" moeilijke nog eens", "Redo the "+d.nogeens.length+" hard ones")+'</button>'
+          : '')
+      + '<button class="btn btn-ghost btn-sm" data-flash="new">'+L("Opnieuw met alles","Start over with all")+'</button></div>';
+    return;
+  }
+
+  const k = d.kaarten[d.i];
+  box.innerHTML = '<div class="tiny dim" style="margin-bottom:8px">'+(d.i+1)+' / '+d.kaarten.length+'</div>'
+    + '<div class="flash" id="flash"><div class="flash-in">'
+    + '<div class="flash-face"><div><div class="ves" style="font-size:30px">'+k.voor+'</div>'
+    + '<div class="vpron" style="margin-top:6px">'+k.pron+'</div>'
+    + '<div class="tiny dim" style="margin-top:14px">'+T("Tik om om te draaien")+'</div></div></div>'
+    + '<div class="flash-face flash-back"><div>'+(k.emoji?'<div style="font-size:40px">'+k.emoji+'</div>':'')
+    + '<div class="vnl" style="font-size:24px">'+k.achter+'</div>'
+    + '<div class="tiny dim" style="margin-top:10px">'+k.extra+'</div></div></div>'
+    + '</div>'
+    + '<div class="row" style="gap:8px;margin-top:12px">'
+    + '<button class="btn btn-primary btn-sm" data-flash="ken">'+L("Ken ik","I knew it")+'</button>'
+    + '<button class="btn btn-ghost btn-sm" data-flash="nog">'+L("Nog niet","Not yet")+'</button></div>';
 }
 function newMem(){
   const ws = R.pickN(VOCAB.filter(w=>w.nl.length<16), 6);
@@ -8761,6 +8807,10 @@ document.addEventListener("click", ev => {
   if(d.export){ const ok = exportProgress(); const m=$("#impmsg"); if(m) m.textContent = ok?"Reservekopie opgeslagen als azulejo-voortgang.json":"Opslaan lukte niet in deze omgeving."; return; }
   if(d.import){ const f=$("#impf"); if(f) f.click(); return; }
   if(d.flash==="new"){ newFlash(); return; }
+  /* PATCH: flitskaarten met alle woorden */
+  if(d.flash==="ken" && FDECK){ FDECK.goed++; FDECK.i++; paintFlash(); return; }
+  if(d.flash==="nog" && FDECK){ FDECK.nogeens.push(FDECK.kaarten[FDECK.i]); FDECK.i++; paintFlash(); return; }
+  if(d.flash==="herhaal" && FDECK){ FDECK = {kaarten:R.shuffle(FDECK.nogeens), i:0, nogeens:[], goed:0}; paintFlash(); return; }
   if(t.id==="flash"){ t.classList.toggle("flipped"); return; }
   if(d.mem==="new"){ newMem(); return; }
   if(d.mem !== undefined){
