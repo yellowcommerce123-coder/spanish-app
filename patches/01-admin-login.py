@@ -16,13 +16,10 @@ Gebruik: 01-admin-login.py <repo-map>
 """
 import sys, pathlib
 
+import _lib
+
 MARK = "/* PATCH: admin via accountlogin */"
 
-
-def sub(s, old, new, what):
-    if old not in s:
-        raise SystemExit("FOUT: %s niet gevonden -- de code is van vorm veranderd" % what)
-    return s.replace(old, new, 1)
 
 
 def patch_api(p):
@@ -30,14 +27,14 @@ def patch_api(p):
     if MARK in s:
         return "api/progress.js  al gepatcht"
 
-    s = sub(s,
+    s = _lib.eenmalig(s,
         'const ADMIN_TOKEN = process.env.AZULEJO_ADMIN_TOKEN || "";',
         'const ADMIN_TOKEN = process.env.AZULEJO_ADMIN_TOKEN || "";\n' + MARK + '''
 const ADMIN_EMAIL = String(process.env.AZULEJO_ADMIN_EMAIL || "jurreb@live.nl").trim().toLowerCase();
 const ADMIN_PASS  = process.env.AZULEJO_ADMIN_PASS || "";''',
         "ADMIN_TOKEN-regel")
 
-    s = sub(s,
+    s = _lib.eenmalig(s,
         '''      if (!ADMIN_TOKEN) {
         return res.status(503).json({ error: "admin_disabled", hint: "Set AZULEJO_ADMIN_TOKEN in Vercel and redeploy." });
       }
@@ -74,7 +71,7 @@ def patch_html(p):
         return "index.html       al gepatcht"
 
     # 1. accountgegevens meesturen; niet blokkeren op een leeg tokenveld
-    s = sub(s,
+    s = _lib.eenmalig(s,
         '''  if(!ADM.token){ ADM.msg = "Vul eerst het beheerderswachtwoord in."; return renderAdmin(); }
   ADM.msg = "Bezig..."; renderAdmin();
   try{
@@ -100,7 +97,7 @@ def patch_html(p):
         "admCall()")
 
     # 2. tokenveld vervangen door uitleg; veld alleen tonen als het echt nodig is
-    s = sub(s,
+    s = _lib.eenmalig(s,
         """  h += '<div class="card pad stack-14"><div><div class="h-md">Beheerderswachtwoord</div>'
     + '<p class="prose" style="font-size:15px">Dit is niet je gewone wachtwoord. Het is de waarde die je in Vercel hebt gezet als '
     + '<span class="mono">AZULEJO_ADMIN_TOKEN</span>. Zonder dat wachtwoord weigert de server elke beheeractie, ook al zie je deze pagina.</p></div>'
@@ -124,7 +121,7 @@ def patch_html(p):
         "beheer-invoerblok")
 
     # 3. nette foutmelding voor een afgewezen accountlogin
-    s = sub(s,
+    s = _lib.eenmalig(s,
         '''  if(m==="bad_token") return "Dat beheerderswachtwoord klopt niet.";''',
         '''  if(m==="bad_token") return "Dat beheerderswachtwoord klopt niet.";
   if(m==="not_admin") return "Dit account heeft geen beheerrechten, of het wachtwoord klopt niet.";''',

@@ -13,13 +13,10 @@ Gebruik: 02-waarschuwing-zonder-account.py <repo-map>
 """
 import sys, pathlib
 
+import _lib
+
 MARK = "/* PATCH: waarschuwing zonder account */"
 
-
-def sub(s, old, new, what):
-    if old not in s:
-        raise SystemExit("FOUT: %s niet gevonden -- de code is van vorm veranderd" % what)
-    return s.replace(old, new, 1)
 
 
 def patch_html(p):
@@ -28,7 +25,7 @@ def patch_html(p):
         return "index.html  al gepatcht"
 
     # 1. de knop wordt een tweetrapsraket: eerst uitleg, dan pas verder
-    s = sub(s,
+    s = _lib.eenmalig(s,
         """    + '<div class="center"><button class="btn btn-ghost btn-sm" data-skiplogin="1">'+T("Verder zonder account")+'</button>'
     + '<div class="tiny dim" style="margin-top:8px">'+T("Dan blijft je voortgang alleen in deze browser.")+'</div></div>'""",
         """    + '<div class="center">' """ + MARK + """
@@ -52,7 +49,7 @@ def patch_html(p):
         "skip-knop in renderGate()")
 
     # 2. eerste klik toont de waarschuwing, tweede klik gaat pas door
-    s = sub(s,
+    s = _lib.eenmalig(s,
         """  if(d.skiplogin){ try{ localStorage.setItem("azulejo:skiplogin","1"); }catch(e){} const g=$("#gate"); if(g) g.remove(); return; }
   if(d.showlogin){ try{ localStorage.removeItem("azulejo:skiplogin"); }catch(e){} renderGate(); return; }""",
         """  if(d.skiplogin){ """ + MARK + """

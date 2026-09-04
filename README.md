@@ -50,28 +50,20 @@ De zip overschrijft `index.html` en `api/progress.js` volledig. Alles wat wij ze
 aan die bestanden veranderen staat daarom als script in `patches/`, en het
 deploy-script past die na elke update opnieuw toe.
 
+- `_lib.py` — gedeelde hulp: idempotentie, eenduidige ankers, hard stoppen
 - `01-admin-login.py` — schermt de beheerpagina af op de inlog van het
   beheerdersaccount in plaats van op een los token
 - `02-waarschuwing-zonder-account.py` — laat "Verder zonder account" eerst
   waarschuwen dat de voortgang alleen in die browser blijft
-- `03-hay-zin-bouwen.py` — maakt van de typ-oefening op de tegel "Hay en está"
-  een bouwoefening, met de andere vorm (hay/está) als extra keuze in de bak
-- `04-zinnen-bouwen-ipv-typen.py` — haakt in op `ex()` en zet elke typ-oefening
-  met een antwoord van drie woorden of meer om naar een bouwoefening. Antwoorden
-  van een of twee woorden (werkwoordsvorm, lidwoord + zelfstandig naamwoord,
-  getal) blijven typen: dat is een vorm invullen, geen zin schrijven
-- `05-onveranderlijk-afleider.py` — in adjectives/onveranderlijk viel de foute
-  optie samen met het antwoord bij woorden op -e (fuerte + s = fuertes)
-- `06-engels-afmaken.py` — brokken Nederlands in de Engelse versie; de meeste
+- `03-zinnen-bouwen.py` — hele zinnen intypen wordt hele zinnen bouwen; korte
+  antwoorden van een of twee woorden blijven typen
+- `04-oefenfouten.py` — twee oefeningen waarvan de foute optie soms gelijk was
+  aan het antwoord (`fuertes`, en `bebé` door een klinkertest zonder accenten)
+- `05-engels.py` — brokken Nederlands in de Engelse versie; de meeste
   vertalingen bestonden al maar liepen niet door `T()`
-- `07-meervoud-afleider.py` — in plural/keuze miste de klinkertest de accenten,
-  waardoor bebé, sofá, café en té zichzelf beantwoordden
-- `08-engels-restjes.py` — de laatste labels die niet door `T()` liepen
-- `09-werkwoorden-uitbreiden.py` — twaalf regelmatige werkwoorden uit de lesstof
-  toegevoegd aan `VERBS`, `NLSTEM` en `EN_VERB` (41 -> 53)
-- `10-flitskaarten-alle-woorden.py` — de losse willekeurige flitskaart wordt een
-  geschudde stapel van alle 278 kaarten (woorden + werkwoorden), met teller,
-  "ken ik / nog niet" en een herhaalronde met de gemiste kaarten
+- `06-werkwoorden.py` — twaalf regelmatige werkwoorden uit de lesstof (41 → 53)
+- `07-flitskaarten.py` — flitskaarten met alle 278 kaarten, score, voortgangs-
+  balk, Enter/1/2 en een omkeerbare richting
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
