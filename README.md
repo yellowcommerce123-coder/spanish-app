@@ -69,6 +69,9 @@ deploy-script past die na elke update opnieuw toe.
 - `08-engels-restjes.py` — de laatste labels die niet door `T()` liepen
 - `09-werkwoorden-uitbreiden.py` — twaalf regelmatige werkwoorden uit de lesstof
   toegevoegd aan `VERBS`, `NLSTEM` en `EN_VERB` (41 -> 53)
+- `10-flitskaarten-alle-woorden.py` — de losse willekeurige flitskaart wordt een
+  geschudde stapel van alle 278 kaarten (woorden + werkwoorden), met teller,
+  "ken ik / nog niet" en een herhaalronde met de gemiste kaarten
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
