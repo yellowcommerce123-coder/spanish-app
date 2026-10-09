@@ -62,8 +62,9 @@ deploy-script past die na elke update opnieuw toe.
 - `05-engels.py` — brokken Nederlands in de Engelse versie; de meeste
   vertalingen bestonden al maar liepen niet door `T()`
 - `06-werkwoorden.py` — twaalf regelmatige werkwoorden uit de lesstof (41 → 53)
-- `07-flitskaarten.py` — flitskaarten met alle 278 kaarten, score, voortgangs-
-  balk, Enter/1/2 en een omkeerbare richting
+- `07-flitskaarten.py` — flitskaarten met alle 291 kaarten (woorden, regelmatige
+  én onregelmatige werkwoorden), score, voortgangsbalk, Enter/1/2 en een
+  omkeerbare richting
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever

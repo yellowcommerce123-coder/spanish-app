@@ -8540,7 +8540,28 @@ function flashStapel(){
     nl: verbBetekenis(v),
     extra: L("werkwoord op -"+v.g, "verb ending in -"+v.g)
   }));
-  return R.shuffle(uitWoorden.concat(uitWerkwoorden));
+  /* De onregelmatige werkwoorden staan bewust niet in VERBS -- anders zouden de
+     vervoegingsoefeningen podo leren in plaats van puedo. Voor een flitskaart
+     horen ze er juist wel bij, dus hier voegen we ze apart toe. */
+  const VAST = [
+    {es:"ser",   pron:"ser",    nl:L("zijn (blijvend)","to be (lasting)"),         rij:SER},
+    {es:"estar", pron:"es-TAR", nl:L("zijn (nu of plaats)","to be (right now or place)"), rij:ESTAR},
+    {es:"tener", pron:"te-NER", nl:L("hebben","to have"),                          rij:TENER},
+    {es:"ir",    pron:"eer",    nl:L("gaan","to go"),                              rij:IR}
+  ];
+  const PRON = {poder:"po-DER", querer:"ke-RER", dormir:"dor-MEER", pensar:"pen-SAR",
+                volver:"bol-BER", empezar:"em-pe-THAR", jugar:"choe-GAR",
+                pedir:"pe-DEER", entender:"en-ten-DER"};
+  const uitVast = VAST.map(v => ({
+    es: v.es, pron: v.pron, emoji: "", nl: v.nl,
+    extra: L("onregelmatig: ","irregular: ") + v.rij.join(", ")
+  }));
+  const uitStam = STEMCH.map(v => ({
+    es: v.es, pron: PRON[v.es] || pronOf(v.es), emoji: "",
+    nl: LANG === "en" ? v.en : v.nl,
+    extra: L("stam verandert: ","stem changes: ") + L(v.ch, v.chEn) + " (yo " + v.yo + ")"
+  }));
+  return R.shuffle(uitWoorden.concat(uitWerkwoorden, uitVast, uitStam));
 }
 
 function newFlash(){
