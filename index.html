@@ -3414,7 +3414,7 @@ const STEMCH = [
   {es:"empezar",nl:"beginnen",en:"to begin",yo:"empiezo",st:"empez",ch:"e wordt ie",chEn:"e becomes ie"},
   {es:"jugar",nl:"spelen",en:"to play",yo:"juego",st:"jug",ch:"u wordt ue",chEn:"u becomes ue"},
   {es:"pedir",nl:"vragen om",en:"to ask for",yo:"pido",st:"ped",ch:"e wordt i",chEn:"e becomes i"},
-  {es:"entender",nl:"begrijpen",en:"to understand",yo:"entiendo",st:"entend",ch:"e wordt ie",chEn:"e becomes ie"},
+  {es:"entender",nl:"snappen",en:"to understand",yo:"entiendo",st:"entend",ch:"e wordt ie",chEn:"e becomes ie"},
   /* PATCH: stamveranderende werkwoorden compleet */
   {es:"cerrar",nl:"sluiten",en:"to close",yo:"cierro",st:"cerr",ch:"e wordt ie",chEn:"e becomes ie"},
   {es:"comenzar",nl:"starten",en:"to start",yo:"comienzo",st:"comenz",ch:"e wordt ie",chEn:"e becomes ie"},
@@ -7254,7 +7254,8 @@ function buildGens(src){
       options:[f.out.es].concat(distractors(f.out.es,3)), answer:f.out.es,
       why:L("Je hoorde: ","You heard: ")+"<b>"+f.out.es+"</b> ("+f.out.nl+") "+L("Uitspraak: ","Pronunciation: ")+pronOf(f.out.es)+".",
       wrongWhy:{},
-      ruleName:"Patroon: "+pat.name,
+      /* PATCH: patroonnamen en losse Nederlandse resten */
+      ruleName:L("Patroon: ","Pattern: ")+patName(pat),
       mistake:L("Te snel kiezen.","Choosing too fast. Listen again, you always may."),
       trick:L("Let op het frame aan het begin van de zin.","Listen for the frame at the start of the sentence.")};
   });
@@ -8091,11 +8092,11 @@ function renderBuildLesson(id){
     const key = src+":"+pat.key;
     if(!LAB[key]) LAB[key] = {};
     h += '<div class="card pad" data-lab="'+key+'">'
-      + '<div class="sec-h"><span class="num">'+String(i+1).padStart(2,"0")+'</span><h3 class="h-lg">'+pat.name+'</h3></div>'
+      + '<div class="sec-h"><span class="num">'+String(i+1).padStart(2,"0")+'</span><h3 class="h-lg">'+patName(pat)+'</h3></div>'
       + '<p class="prose" style="margin-bottom:14px">'+noteTxt(pat)+'</p>'
       + '<div class="q-sent lab-out" style="text-align:left">'+labOut(src,pat)+'</div>';
     Object.keys(pat.slots).forEach(k=>{
-      h += '<div style="margin-top:12px"><div class="eyebrow" style="margin-bottom:7px">Kies een blokje</div><div class="filters">'
+      h += '<div style="margin-top:12px"><div class="eyebrow" style="margin-bottom:7px">'+L("Kies een blokje","Pick a block")+'</div><div class="filters">'
         + pat.slots[k].map((o,ix)=>'<button class="filter'+((LAB[key][k]||0)===ix?' on':'')+'" data-lab-key="'+key+'" data-slot="'+k+'|'+ix+'">'+o[0]+'</button>').join("")
         + '</div></div>';
     });

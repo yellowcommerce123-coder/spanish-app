@@ -68,6 +68,8 @@ deploy-script past die na elke update opnieuw toe.
 - `08-stamverandering.py` — zes e→ie werkwoorden erbij en twee oefeningen die de
   regel leren die nergens stond: de stam verandert overal behalve bij nosotros
   en vosotros
+- `09-patroonnamen.py` — de bouwlessen toonden "[object Object]" als sectiekop;
+  de helper `patName()` bestond al maar werd op twee plekken niet gebruikt
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
