@@ -3450,10 +3450,18 @@ reg("verbstem","uitzondering",()=>{
 });
 
 reg("verbstem","stamvervoegen",()=>{
-  const v = R.pick(STEMCH), vormen = stamVormen(v), i = R.int(6), pr = P6[i];
+  const v = R.pick(STEMCH), vormen = stamVormen(v);
   const g = v.es.slice(-2), nieuw = v.yo.slice(0,-1);
+  let i = R.int(6), pr = P6[i], beleefd = false;
+  /* usted en ustedes spreken iemand aan, maar pakken de hij- en zij-vorm.
+     Dat is precies de valstrik die hier geoefend hoort te worden. */
+  if((i === 2 || i === 5) && R.chance(.4)){
+    beleefd = true;
+    pr = (i === 2) ? {p:"usted", nl:"u"} : {p:"ustedes", nl:"u (meer mensen)"};
+  }
   const houdt = (i === 3 || i === 4);
-  const val = (houdt ? nieuw : v.st) + ENDINGS[g][i];
+  const val = beleefd ? vormen[i === 2 ? 1 : 4]
+                      : (houdt ? nieuw : v.st) + ENDINGS[g][i];
   const wrongs = [val, vormen[(i+1)%6], vormen[(i+3)%6]]
     .filter((x,ix,a) => x !== vormen[i] && a.indexOf(x) === ix);
   return {type:"mc",
@@ -3461,20 +3469,31 @@ reg("verbstem","stamvervoegen",()=>{
              "Conjugate "+v.es+" ("+v.en+") for "+pr.p+"."),
     sentence:cap(pr.p)+" ___ .", showEs:cap(pr.p)+" "+vormen[i]+".",
     options:[vormen[i]].concat(wrongs.slice(0,3)), answer:vormen[i],
-    why: houdt
-      ? L(pr.p+" is een van de twee uitzonderingen. De stam blijft gewoon "+v.st+", dus "+vormen[i]+".",
-          pr.p+" is one of the two exceptions. The stem simply stays "+v.st+", so "+vormen[i]+".")
-      : L("Bij "+pr.p+" verandert de stam: "+v.ch+". Dat geeft "+vormen[i]+".",
-          "For "+pr.p+" the stem changes: "+v.chEn+". That gives "+vormen[i]+"."),
-    wrongWhy:{[val]: houdt
-      ? L("Dat is de veranderde stam. Juist bij nosotros en vosotros verandert hij niet.",
-          "That is the changed stem. For nosotros and vosotros it is precisely the one that does not change.")
-      : L("Dat is de oude stam. Die blijft alleen staan bij nosotros en vosotros.",
-          "That is the old stem. It only stays for nosotros and vosotros.")},
-    ruleName:L("Stamverandering: overal behalve nosotros en vosotros",
-               "Stem change: everywhere except nosotros and vosotros"),
-    mistake:L("De stam ook bij wij en jullie veranderen.",
-              "Changing the stem for we and you-plural as well."),
+    why: beleefd
+      ? L(pr.p+" is beleefd, maar het werkwoord doet alsof je over iemand praat in plaats van tegen iemand. Dus de "+(i===2?"hij":"zij")+"-vorm: "+vormen[i]+".",
+          pr.p+" is polite, but the verb behaves as if you were talking about someone rather than to them. So the "+(i===2?"he":"they")+" form: "+vormen[i]+".")
+      : houdt
+        ? L(pr.p+" is een van de twee uitzonderingen. De stam blijft gewoon "+v.st+", dus "+vormen[i]+".",
+            pr.p+" is one of the two exceptions. The stem simply stays "+v.st+", so "+vormen[i]+".")
+        : L("Bij "+pr.p+" verandert de stam: "+v.ch+". Dat geeft "+vormen[i]+".",
+            "For "+pr.p+" the stem changes: "+v.chEn+". That gives "+vormen[i]+"."),
+    wrongWhy:{[val]: beleefd
+      ? L("Dat is de "+(i===2?"jij":"jullie")+"-vorm. "+pr.p+" spreekt wel iemand aan, maar pakt de "+(i===2?"hij":"zij")+"-vorm.",
+          "That is the "+(i===2?"you":"you plural")+" form. "+pr.p+" does address someone, but takes the "+(i===2?"he":"they")+" form.")
+      : houdt
+        ? L("Dat is de veranderde stam. Juist bij nosotros en vosotros verandert hij niet.",
+            "That is the changed stem. For nosotros and vosotros it is precisely the one that does not change.")
+        : L("Dat is de oude stam. Die blijft alleen staan bij nosotros en vosotros.",
+            "That is the old stem. It only stays for nosotros and vosotros.")},
+    ruleName: beleefd
+      ? L("usted en ustedes nemen de hij- en zij-vorm","usted and ustedes take the he and they forms")
+      : L("Stamverandering: overal behalve nosotros en vosotros",
+          "Stem change: everywhere except nosotros and vosotros"),
+    mistake: beleefd
+      ? L("Bij usted de jij-vorm pakken omdat je iemand aanspreekt.",
+          "Reaching for the you form with usted because you are addressing someone.")
+      : L("De stam ook bij wij en jullie veranderen.",
+          "Changing the stem for we and you-plural as well."),
     trick:L("Het staartje is altijd gewoon. Alleen het midden wisselt.",
             "The ending is always normal. Only the middle shifts.")};
 });
