@@ -65,6 +65,9 @@ deploy-script past die na elke update opnieuw toe.
 - `07-flitskaarten.py` — flitskaarten met alle 291 kaarten (woorden, regelmatige
   én onregelmatige werkwoorden), score, voortgangsbalk, Enter/1/2 en een
   omkeerbare richting
+- `08-stamverandering.py` — zes e→ie werkwoorden erbij en twee oefeningen die de
+  regel leren die nergens stond: de stam verandert overal behalve bij nosotros
+  en vosotros
 
 Een patch is idempotent en stopt met een harde fout als de code van vorm is
 veranderd. In dat geval breekt de deploy af en wordt er niets gepusht — liever
